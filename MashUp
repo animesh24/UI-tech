@@ -1,0 +1,29 @@
+<pega:choose>
+<pega:when test="pxRequestor.pyPegaDesignMode != 'true'">
+<pega:onlyonce name="pega_mashup">
+<pega:static type="script" app="webwb">
+  <pega:file name="pega-mashup.js" />
+</pega:static>
+<pega:static type="style" app="webwb">
+  <pega:file name="pega-mashup.css" />
+</pega:static>
+  </pega:onlyonce><% 
+      String bShowCreate = tools.getParamValue("bshowCreate");
+      if(bShowCreate.equals("-1")) bShowCreate = "true";
+      String systemURL = pega_rules_utilities.getDataSystemSetting("SFA", "CSMSystemURL");
+      ClipboardPage cp = tools.createPage("", "");
+      ParameterPage myParamPage = new ParameterPage();
+			HashStringMap runActivityInSection = new HashStringMap();
+			runActivityInSection.putString("pxObjClass", "Rule-Obj-Activity");
+			runActivityInSection.putString("pyClassName", "@baseclass");
+			runActivityInSection.putString("pyActivityName", "GenerateSAJWTToken");
+			tools.doActivity(runActivityInSection,cp,myParamPage);
+     String retJSON = myParamPage.getString("JSON");
+      com.google.gson.JsonObject jsonObject = new  com.google.gson.JsonParser().parse(retJSON).getAsJsonObject();
+      String token = jsonObject.get("pyJWT").getAsString(); %>
+<pega-mashup-light url="<%= systemURL %>" title="My worklist for CSM" bShowCreate="<%= bShowCreate %>" casetype="<%= StringUtils.crossScriptingFilter( tools.getParamValue("casetype"))%>" action="<%= StringUtils.crossScriptingFilter( tools.getParamValue("action"))%>"  token="<%= token %>"/>
+</pega:when>
+<pega:otherwise>
+  <span>Pega Mashup Web component</span>
+</pega:otherwise>
+</pega:choose>
